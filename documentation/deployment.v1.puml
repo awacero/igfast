@@ -1,0 +1,96 @@
+@startuml
+title GNSS stations at IGEPN
+
+skinparam rectangleStyle rounded
+skinparam shadowing false
+skinparam defaultTextAlignment center
+skinparam wrapWidth 200
+'top to bottom direction
+left to right direction
+' Estaciones GNSS (apiladas)
+rectangle "MLEC" as ST1
+rectangle "IBEC" as ST2
+rectangle "..."  as ST_MORE #transparent
+rectangle "TRPG" as ST3
+
+
+' Nube de red/enlace
+cloud "CLOUD_EC" as CLOUD_EC
+cloud "CLOUD" as CLOUD
+
+' Conexiones de estaciones hacia la red
+ST1 -down-> CLOUD_EC
+ST2 -down-> CLOUD_EC
+ST3 -down-> CLOUD_EC
+ST_MORE -down-> CLOUD_EC
+
+
+actor "IG User" as USER
+node "PC - Laptop" as PC{
+    rectangle "web browser" as BROWSER
+    rectangle "mail client" as MAIL
+}
+
+' === SERVIDOR PRINCIPAL ===
+node "SRVPROGPSR" as SRVPROGPSR {
+    rectangle "ntrip" as NTRIP
+    rectangle "iggpsrt" as IGGPSRT
+    rectangle "zabbix_agent" as ZABBIXA
+}
+
+node "Wuhan U" as WUHAN {
+    rectangle "data_process" as DATA_PROCESS
+    
+}
+
+
+node "SRVMONZXLG" as SRVMONZXLG {
+    rectangle "Trimble SOH monitor" as TRIMBLE_SOH
+    rectangle "Server monitor" as SERVER_MONITOR
+    rectangle "Trimble Dashboard\n SOH + QC" as ZABBIX_DASH
+    rectangle "PDF Report" as PDF_REPORT_ZABBIX
+}
+
+note right of SRVMONZXLG
+    Servidor Zabbix 6.4 
+end note
+
+node "SRVBDDNOSQ" as SRVBDDNOSQ {
+    database "InfluxDB 1.6" as INFLUX_DB
+
+}
+
+node "SRVMONGRF9" as SRVMONGRF9 {
+    
+    rectangle "GPSR Dashboard\n" as GRAFANA_DASH
+    rectangle "Grafana Server 9" as Grafana_9
+    rectangle "PDF Report" as PDF_REPORT_GRAFANA
+}
+
+' === CONEXIONES INTERNAS ===
+NTRIP -down-> IGGPSRT
+'IGGPSRT -down-> ZABBIXA
+
+' === INTERFACES EXTERNAS (a conectar en pasos siguientes) ===
+CLOUD_EC -right-> NTRIP : Adquisición 
+IGGPSRT -right-> INFLUX_DB
+CLOUD_EC -down-> TRIMBLE_SOH
+ZABBIXA -down->SERVER_MONITOR
+
+INFLUX_DB -down-> Grafana_9
+
+NTRIP <-right-> CLOUD
+CLOUD <-right-> DATA_PROCESS
+
+USER -up-> PC 
+BROWSER -up-> GRAFANA_DASH
+PDF_REPORT_GRAFANA -up-> MAIL
+BROWSER -up-> ZABBIX_DASH
+PDF_REPORT_ZABBIX -left->MAIL
+' (Opcional) salida hacia el siguiente bloque del diagrama
+'CLOUD_EC -right-> SRVPROGPSR
+'NTRIP <-right-> DATA_PROCESS
+
+
+
+@enduml

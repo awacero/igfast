@@ -59,5 +59,9 @@ El sistema **GFAST** automatiza el procesamiento rápido de datos GNSS para esti
 ## Diagrama de secuencia del flujo principal
 El diagrama de secuencia se mantiene en [`docs/diagrams/gfast_sequence.puml`](diagrams/gfast_sequence.puml). Exporta el flujo completo desde la invocación de la CLI hasta la escritura de resultados, y puede renderizarse con cualquier visor PlantUML externo.
 
+<img src="./diagrams/gfast_sequence.png" height=333>
+
 ## Mapa de módulos y dependencias
 El mapa de módulos está disponible en [`docs/diagrams/gfast_modules.puml`](diagrams/gfast_modules.puml). Resume las dependencias entre el orquestador, los inicializadores de buffers y los algoritmos numéricos especializados.
+
+<img src="./diagrams/gfast_modules.png" height=333>

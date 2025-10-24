@@ -47,18 +47,17 @@ El sistema **GFAST** automatiza el procesamiento rápido de datos GNSS para esti
 - **Archivos estáticos**: la tabla `M99.txt` para incertidumbre PGD y archivos de canales para reproducción.
 
 ## Supuestos y parámetros clave
-- Corrección de tiempo fijo de −5 horas para datos en tiempo real (`style=0`). 
-
-- Paso temporal fijo (`datarate = 1 s`) y rejilla de falla `nstr=10`, `ndip=5`. 
-- Se requieren al menos 4 estaciones (`len(a1) > 3`) para disparar cálculos PGD, CMT y falla finita. 
+- Corrección de tiempo fijo de −5 horas para datos en tiempo real (`style=0`).
+- Paso temporal fijo (`datarate = 1 s`) y rejilla de falla `nstr=10`, `ndip=5`.
+- Se requieren al menos 4 estaciones (`len(a1) > 3`) para disparar cálculos PGD, CMT y falla finita.
 
 ## Extensibilidad
 - Nuevos estimadores pueden añadirse en `eew_data_engine.py` aprovechando los buffers calculados.
 - Las constantes operativas (offset horario, tamaños de rejilla, umbrales) deberían externalizarse en archivos de configuración para facilitar despliegues en otras redes.
 - Migrar la interfaz CLI a `argparse` permitiría generar ayuda integrada y pruebas automatizadas sobre funciones puras.
 
-## Diagramas sugeridos
-Para documentación extendida, se recomienda complementar este resumen con:
-- Un diagrama de secuencia que muestre la interacción `CLI → buffer_init → data_engine → output`.
-- Un mapa de módulos que relacione archivos en `eew_data_engine.py` con dependencias (`scaling`, `cmt`, `fault_plane`, `RTOkada`).
+## Diagrama de secuencia del flujo principal
+El diagrama de secuencia se mantiene en [`docs/diagrams/gfast_sequence.puml`](diagrams/gfast_sequence.puml). Exporta el flujo completo desde la invocación de la CLI hasta la escritura de resultados, y puede renderizarse con cualquier visor PlantUML externo.
 
+## Mapa de módulos y dependencias
+El mapa de módulos está disponible en [`docs/diagrams/gfast_modules.puml`](diagrams/gfast_modules.puml). Resume las dependencias entre el orquestador, los inicializadores de buffers y los algoritmos numéricos especializados.

@@ -1,0 +1,27 @@
+@startuml
+autonumber
+actor "Usuario/CLI" as CLI
+participant "GFAST_run.py" as Runner
+participant "buffer_init_influxDB(_archive)" as Buffers
+participant "eew_data_engine.py" as Engine
+database "Archivos de salida" as Outputs
+
+CLI -> Runner: Ejecuta comando con hipocentro, tiempo y estilo
+Runner -> Runner: Valida argumentos y carga gfast.props
+Runner -> Buffers: Solicita buffers N/E/U según estilo
+Buffers --> Runner: Retorna buffers de estaciones y metadatos
+loop Cada segundo (hasta ndata)
+    Runner -> Engine: Llama pgd_estimator / data_engine_pgd
+    Engine --> Runner: Magnitud PGD, sigma, RV
+    alt PGD con incertidumbre baja o disparo forzado
+        Runner -> Engine: Llama offset_estimator / data_engine_cmt
+        Engine --> Runner: Tensor de momento y métricas
+        opt Tensor confiable (LEN_CMT > 3)
+            Runner -> Engine: Llama data_engine_ff (ambos planos)
+            Engine --> Runner: Modelos de slip y ajustes
+        end
+    end
+    Runner -> Outputs: Actualiza archivos *_pgd.txt, *_cmt.txt, *_slipmodel*.txt
+end
+Runner -> Outputs: Genera gráficos (opcional)
+@enduml

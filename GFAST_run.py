@@ -23,16 +23,16 @@ import logging
 #Additional modules can be added within eew_data_engine
 #############################################
 if not os.path.exists('output'): #if output folder doesn't exist, make it
-        os.makedirs('output')
+	os.makedirs('output')
 
 logger = logging.getLogger("gfast_run")
 logger.setLevel(logging.INFO)
 if not logger.handlers:
-        stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-        stream_handler.setFormatter(formatter)
-        logger.addHandler(stream_handler)
+	stream_handler = logging.StreamHandler()
+	stream_handler.setLevel(logging.INFO)
+	formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+	stream_handler.setFormatter(formatter)
+	logger.addHandler(stream_handler)
 
 logger.info('CLI arguments: %s', sys.argv[:])
 lat = sys.argv[1]
@@ -44,15 +44,15 @@ ndata = sys.argv[6]
 style = sys.argv[7] #make this zero if using the real time server, 1 for playback of events manually added
 log_file = os.path.join('output', f'gfast_{eqname}_run.log')
 if not any(isinstance(h, logging.FileHandler) for h in logger.handlers):
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
+	file_handler = logging.FileHandler(log_file)
+	file_handler.setLevel(logging.INFO)
+	formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+	file_handler.setFormatter(formatter)
+	logger.addHandler(file_handler)
 logger.info('Logging to %s', log_file)
 logger.info('Selected style=%s for processing', style)
 if (int(style) == 0):
-        import buffer_init_influxDB
+	import buffer_init_influxDB
 
 if (int(style) == 1):
 	chanfile = sys.argv[8]
@@ -86,11 +86,11 @@ gpstime = unixot-gpstimeoff
 leapsec = coord_tools.gpsleapsec(gpstime)
 #Specific to this influxDB is a 5 hour difference between machine time and UTC. I also make the leap second correction
 if (int(style) == 0):
-        unixotcorr = unixot-18000+leapsec
-        logger.info('Using real-time buffer initialization with 5h offset correction. Corrected origin: %s', unixotcorr)
+	unixotcorr = unixot-18000+leapsec
+	logger.info('Using real-time buffer initialization with 5h offset correction. Corrected origin: %s', unixotcorr)
 else:
-        unixotcorr = unixot+leapsec
-        logger.info('Using archive buffer initialization. Corrected origin: %s', unixotcorr)
+	unixotcorr = unixot+leapsec
+	logger.info('Using archive buffer initialization. Corrected origin: %s', unixotcorr)
 ##########
 #EQ Name
 ##########
@@ -144,11 +144,11 @@ ffm = open(fnamefm,'w')
 #Build Data buffers
 #############################################
 if (int(style) == 0):
-        logger.info('Building buffers from real-time InfluxDB data')
-        [staname,gpst,sta_lat,sta_lon,sta_alt,nbuff,ebuff,ubuff,tvals] = buffer_init_influxDB.data_fromInfluxDB(unixotcorr,unixot,ndata,ip,pt,uname,pword,database)
+	logger.info('Building buffers from real-time InfluxDB data')
+	[staname,gpst,sta_lat,sta_lon,sta_alt,nbuff,ebuff,ubuff,tvals] = buffer_init_influxDB.data_fromInfluxDB(unixotcorr,unixot,ndata,ip,pt,uname,pword,database)
 else:
-        logger.info('Building buffers from archive data file %s', chanfile)
-        [staname,gpst,sta_lat,sta_lon,sta_alt,nbuff,ebuff,ubuff,tvals] = buffer_init_influxDB_archive.data_fromInfluxDB(unixotcorr,unixot,ndata,chanfile,ip,pt,uname,pword,database)
+	logger.info('Building buffers from archive data file %s', chanfile)
+	[staname,gpst,sta_lat,sta_lon,sta_alt,nbuff,ebuff,ubuff,tvals] = buffer_init_influxDB_archive.data_fromInfluxDB(unixotcorr,unixot,ndata,chanfile,ip,pt,uname,pword,database)
 tbuff = numpy.c_[0:ndata*datarate:datarate] #time buffer
 
 #############################################
@@ -159,8 +159,8 @@ ffvers = 0
 runcmtff = 0
 runtime = 0
 while runtime < datarate*ndata+1:
-        [PGDvals,HYP,EPI,aa] = pgd_estimator(eq_lat,eq_lon,eq_dep,sta_lat,sta_lon,sta_alt,nbuff,ebuff,ubuff,tbuff,runtime)
-        OUTPUT_PGD = data_engine_pgd(PGDvals,HYP,EPI,aa,runtime)
+	[PGDvals,HYP,EPI,aa] = pgd_estimator(eq_lat,eq_lon,eq_dep,sta_lat,sta_lon,sta_alt,nbuff,ebuff,ubuff,tbuff,runtime)
+	OUTPUT_PGD = data_engine_pgd(PGDvals,HYP,EPI,aa,runtime)
 	for i in range(0,len(aa)):
 		pgdv = "{0:.4f}".format(float(PGDvals[i,0]))
 		hypdist = "{0:.2f}".format(float(HYP[i,0])) 
@@ -170,21 +170,21 @@ while runtime < datarate*ndata+1:
 	LEN_PGD = OUTPUT_PGD[2] #Number of stations used for PGD calculation
 	VR_PGD = OUTPUT_PGD[3] #PGD Variance Reduction
 
-        if (LEN_PGD > 3):
-                mpgd = "{0:.2f}".format(float(MPGD[0,0]))
-                vrpgd = "{0:.2f}".format(float(VR_PGD))
-                eqlon = "{0:.2f}".format(float(eq_lon))
-                eqlat = "{0:.2f}".format(float(eq_lat))
-                sigpgd = "{0:.4f}".format(float(SIG_PGD))
-                lenpgd = str(LEN_PGD)
-                fpgd.write(str(runtime)+' '+mpgd+' '+sigpgd+' '+vrpgd+' '+lenpgd+'\n')
-                logger.info('Runtime %s: PGD M=%s sigma=%s VR=%s stations=%s', runtime, mpgd, sigpgd, vrpgd, lenpgd)
+	if (LEN_PGD > 3):
+		mpgd = "{0:.2f}".format(float(MPGD[0,0]))
+		vrpgd = "{0:.2f}".format(float(VR_PGD))
+		eqlon = "{0:.2f}".format(float(eq_lon))
+		eqlat = "{0:.2f}".format(float(eq_lat))
+		sigpgd = "{0:.4f}".format(float(SIG_PGD))
+		lenpgd = str(LEN_PGD)
+		fpgd.write(str(runtime)+' '+mpgd+' '+sigpgd+' '+vrpgd+' '+lenpgd+'\n')
+		logger.info('Runtime %s: PGD M=%s sigma=%s VR=%s stations=%s', runtime, mpgd, sigpgd, vrpgd, lenpgd)
 
-        if ((SIG_PGD <= 0.5) or (runcmtff == 1)):
-                runcmtff = 1 #if the PGD uncertainty has ever been under 0.5, run the full stack, otherwise skip
-                [N,E,U,aa] = offset_estimator(eq_lat,eq_lon,eq_dep,sta_lat,sta_lon,sta_alt,nbuff,ebuff,ubuff,tbuff,runtime)
-                SITES = staname[aa]
-                OUTPUT_CMT = data_engine_cmt(eq_lat,eq_lon,eq_dep,sta_lat,sta_lon,sta_alt,N,E,U,tbuff,runtime,aa)
+	if ((SIG_PGD <= 0.5) or (runcmtff == 1)):
+		runcmtff = 1 #if the PGD uncertainty has ever been under 0.5, run the full stack, otherwise skip
+		[N,E,U,aa] = offset_estimator(eq_lat,eq_lon,eq_dep,sta_lat,sta_lon,sta_alt,nbuff,ebuff,ubuff,tbuff,runtime)
+		SITES = staname[aa]
+		OUTPUT_CMT = data_engine_cmt(eq_lat,eq_lon,eq_dep,sta_lat,sta_lon,sta_alt,N,E,U,tbuff,runtime,aa)
 	
 		MCMT = OUTPUT_CMT[0] #CMT Magnitudes as function of depth
 		S1 = OUTPUT_CMT[1] #The 6 moment tensor components as function of depth
@@ -217,10 +217,10 @@ while runtime < datarate*ndata+1:
 		mcmt = "{0:.2f}".format(float(MCMT[dep_vr_cmt,0]))
 
 		lencmt = str(LEN_CMT)
-                fcmt.write(str(runtime)+' '+str(dep_vr_cmt)+' '+vrcmt+' '+mcmt+' '+s1+' '+s2+' '+s3+' '+s4+' '+s5+' '+str1+' '+str2+' '+dip1+' '+dip2+' '+rak1+' '+rak2+' '+lencmt+'\n')
-                logger.info('Runtime %s: CMT depth index=%s VR=%s M=%s stations=%s', runtime, dep_vr_cmt, vrcmt, mcmt, lencmt)
+		fcmt.write(str(runtime)+' '+str(dep_vr_cmt)+' '+vrcmt+' '+mcmt+' '+s1+' '+s2+' '+s3+' '+s4+' '+s5+' '+str1+' '+str2+' '+dip1+' '+dip2+' '+rak1+' '+rak2+' '+lencmt+'\n')
+		logger.info('Runtime %s: CMT depth index=%s VR=%s M=%s stations=%s', runtime, dep_vr_cmt, vrcmt, mcmt, lencmt)
 
-                if (LEN_CMT > 3):
+		if (LEN_CMT > 3):
 			str1 = STR1[dep_vr_cmt]
 			dip1 = DIP1[dep_vr_cmt]
 			str2 = STR2[dep_vr_cmt]
@@ -228,7 +228,7 @@ while runtime < datarate*ndata+1:
 			mcmt = MCMT[dep_vr_cmt]
 
 
-                        OUTPUT_FF=data_engine_ff(eq_lat,eq_lon,dep_vr_cmt,mcmt,str1,str2,dip1,dip2,nstr,ndip,sta_lat,sta_lon,sta_alt,N,E,U,tbuff,runtime,aa)
+			OUTPUT_FF=data_engine_ff(eq_lat,eq_lon,dep_vr_cmt,mcmt,str1,str2,dip1,dip2,nstr,ndip,sta_lat,sta_lon,sta_alt,N,E,U,tbuff,runtime,aa)
 			SSLIP = OUTPUT_FF[0] #Strike-slip along each fault patch
 			DSLIP = OUTPUT_FF[1] #Dip-slip along each fault patch
 			MFF = OUTPUT_FF[2] #Finite fault magnitude
@@ -265,8 +265,8 @@ while runtime < datarate*ndata+1:
 			FDEP3 = OUTPUT_FF[30]
 			FDEP4 = OUTPUT_FF[31] 
 	
-                        if FFStatus == 1:
-                                SLIP = numpy.sqrt(numpy.power(SSLIP,2)+numpy.power(DSLIP,2))
+			if FFStatus == 1:
+				SLIP = numpy.sqrt(numpy.power(SSLIP,2)+numpy.power(DSLIP,2))
 				MAXSLIP = numpy.amax(SLIP)
 				MAXSLIPloc = numpy.argmax(SLIP)
 				MAXSLIPlon = FAULT_LON[MAXSLIPloc,0]
@@ -284,8 +284,8 @@ while runtime < datarate*ndata+1:
 				vrff2 = "{0:.4f}".format(float(VR_FF2))
 				str11 = "{0:.2f}".format(float(STR1[dep_vr_cmt,0]))
 				str22 = "{0:.2f}".format(float(STR2[dep_vr_cmt,0]))
-                                ffo.write(str(runtime)+' '+mff+' '+maxlon+' '+maxlat+' '+maxdep+' '+maxslip+' '+rakews+' '+vrff1+' '+vrff2+' '+str11+' '+str22+'\n')
-                                logger.info('Runtime %s: FF magnitude=%s max slip=%s km at (%s,%s,%s)', runtime, mff, maxslip, maxlon, maxlat, maxdep)
+				ffo.write(str(runtime)+' '+mff+' '+maxlon+' '+maxlat+' '+maxdep+' '+maxslip+' '+rakews+' '+vrff1+' '+vrff2+' '+str11+' '+str22+'\n')
+				logger.info('Runtime %s: FF magnitude=%s max slip=%s km at (%s,%s,%s)', runtime, mff, maxslip, maxlon, maxlat, maxdep)
 
 
 				l1 = len(SSLIP)
@@ -324,7 +324,7 @@ while runtime < datarate*ndata+1:
 
 
 if (runcmtff == 0):
-        logger.warning('PGD magnitude uncertainty too high for entire run, most likely noise source. No CMT or FF run')
+	logger.warning('PGD magnitude uncertainty too high for entire run, most likely noise source. No CMT or FF run')
 fpgd.close()
 fpgdv.close()
 fcmt.close()

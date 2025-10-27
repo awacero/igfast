@@ -14,6 +14,9 @@ For model style, you will use 0 for the real-time database. A value of 1 is used
 Below is an example call to run data from the real-time database:
 
 ``` bash 
+
+time python GFAST_run.py -0.29 -80.18 20.6 '2016-04-16 23:58:36' pedernales_cent_est 120 1 'Ecuador2016_disp_pgd_v2.chan'
+
 python3 GFAST_run.py 1.084 -79.532 18.0 '2025-04-25 11:44:52' esmeraldas_20250425 180 0
 
 ``` 

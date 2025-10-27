@@ -25,6 +25,9 @@ import logging
 if not os.path.exists('output'): #if output folder doesn't exist, make it
 	os.makedirs('output')
 
+if not os.path.exists('logs'): #if log folder doesn't exist, make it
+	os.makedirs('logs')
+
 logger = logging.getLogger("gfast_run")
 logger.setLevel(logging.INFO)
 if not logger.handlers:
@@ -43,7 +46,8 @@ timestamp = sys.argv[4]
 eqname = sys.argv[5]
 ndata = sys.argv[6]
 style = sys.argv[7] #make this zero if using the real time server, 1 for playback of events manually added
-log_file = os.path.join('output', f'gfast_{eqname}_run.log')
+
+log_file = os.path.join('logs', f'gfast_{eqname}_run.log')
 if not any(isinstance(h, logging.FileHandler) for h in logger.handlers):
 	file_handler = logging.FileHandler(log_file)
 	file_handler.setLevel(logging.INFO)
@@ -52,6 +56,7 @@ if not any(isinstance(h, logging.FileHandler) for h in logger.handlers):
 	logger.addHandler(file_handler)
 logger.info(f"Logging to {log_file}")
 logger.info(f"Selected style={style} for processing")
+
 if (int(style) == 0):
 	import buffer_init_influxDB
 

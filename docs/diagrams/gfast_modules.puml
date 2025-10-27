@@ -1,0 +1,23 @@
+@startuml
+skinparam componentStyle rectangle
+
+component "GFAST_run.py" as Runner
+component "buffer_init_influxDB.py\n/ buffer_init_influxDB_archive.py" as Buffers
+component "eew_data_engine.py" as Engine
+component "scaling.py" as Scaling
+component "cmt.py" as CMT
+component "fault_plane.py" as Fault
+component "RTOkada.py" as Okada
+component "plotting.py" as Plot
+database "Archivos estáticos\nM99.txt / Ecuador2016_disp_pgd_v2.chan" as Static
+
+Runner --> Buffers
+Runner --> Engine
+Runner --> Plot
+Runner --> Static
+Engine --> Scaling
+Engine --> CMT
+Engine --> Fault
+Fault --> Okada
+Buffers --> Static
+@enduml

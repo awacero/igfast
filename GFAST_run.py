@@ -34,7 +34,8 @@ if not logger.handlers:
 	stream_handler.setFormatter(formatter)
 	logger.addHandler(stream_handler)
 
-logger.info('CLI arguments: %s', sys.argv[:])
+print(f"{sys.argv[:]}")
+logger.info(f"CLI arguments: {sys.argv[:]}")
 lat = sys.argv[1]
 lon = sys.argv[2]
 dep = sys.argv[3]
@@ -49,8 +50,8 @@ if not any(isinstance(h, logging.FileHandler) for h in logger.handlers):
 	formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 	file_handler.setFormatter(formatter)
 	logger.addHandler(file_handler)
-logger.info('Logging to %s', log_file)
-logger.info('Selected style=%s for processing', style)
+logger.info(f"Logging to {log_file}")
+logger.info(f"Selected style={style} for processing")
 if (int(style) == 0):
 	import buffer_init_influxDB
 
@@ -78,8 +79,10 @@ eq_dep = float(dep)
 #timestamp = input()
 struct_time = time.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
 ot = datetime.fromtimestamp(time.mktime(struct_time))
-logger.info("Event origin time (in UTC): %s", str(ot))
-logger.info("Event origin time (unix): %s", str(calendar.timegm(struct_time)))
+print(f"Event origin time (in UTC): {ot}")
+print(f"Event origin time (unix): {calendar.timegm(struct_time)}")
+logger.info(f"Event origin time (in UTC): {ot}")
+logger.info(f"Event origin time (unix): {calendar.timegm(struct_time)}")
 unixot = int(calendar.timegm(struct_time))
 gpstimeoff = (numpy.datetime64('1980-01-06T00:00:00')-numpy.datetime64('1970-01-01T00:00:00'))/ numpy.timedelta64(1, 's')
 gpstime = unixot-gpstimeoff
@@ -87,16 +90,17 @@ leapsec = coord_tools.gpsleapsec(gpstime)
 #Specific to this influxDB is a 5 hour difference between machine time and UTC. I also make the leap second correction
 if (int(style) == 0):
 	unixotcorr = unixot-18000+leapsec
-	logger.info('Using real-time buffer initialization with 5h offset correction. Corrected origin: %s', unixotcorr)
+	logger.info(f"Using real-time buffer initialization with 5h offset correction. Corrected origin: {unixotcorr}")
 else:
 	unixotcorr = unixot+leapsec
-	logger.info('Using archive buffer initialization. Corrected origin: %s', unixotcorr)
+	logger.info(f"Using archive buffer initialization. Corrected origin: {unixotcorr}")
 ##########
 #EQ Name
 ##########
 #print ("Enter name for earthquake (to be used for output file):")
 #eqname = input()
-logger.info("Event location (lon,lat,dep(km)): %s, %s, %s", lon, lat, dep)
+print(f"Event location (lon,lat,dep(km)): {lon}, {lat}, {dep}")
+logger.info(f"Event location (lon,lat,dep(km)): {lon}, {lat}, {dep}")
 
 ##########
 #Number of seconds to process
@@ -104,7 +108,7 @@ logger.info("Event location (lon,lat,dep(km)): %s, %s, %s", lon, lat, dep)
 #print ("Post earthquake time to output (in seconds):")
 #ndata = input()
 ndata = int(ndata)
-logger.info('Processing window requested: %s seconds', ndata)
+logger.info(f"Processing window requested: {ndata} seconds")
 
 ##########
 #Credentials
@@ -118,12 +122,12 @@ pt = props.getport()
 uname = props.getusername()
 pword = props.getpassword()
 database = props.getdatabase()
-logger.info('InfluxDB target %s:%s database=%s', ip, pt, database)
+logger.info(f"InfluxDB target {ip}:{pt} database={database}")
 #############################################
 #Run Parameters
 #############################################
 datarate = 1 #time between samples
-logger.info('Sampling interval set to %s second(s)', datarate)
+logger.info(f"Sampling interval set to {datarate} second(s)")
 #File names for output
 fnamecmt = 'output/gfast_' + eqname + '_cmt.txt' #output file of pgd and cmt results
 fnamepgd = 'output/gfast_' + eqname + '_pgd.txt' #output file of pgd and cmt results
@@ -143,11 +147,12 @@ ffm = open(fnamefm,'w')
 #############################################
 #Build Data buffers
 #############################################
+
 if (int(style) == 0):
-	logger.info('Building buffers from real-time InfluxDB data')
+	logger.info("Building buffers from real-time InfluxDB data")
 	[staname,gpst,sta_lat,sta_lon,sta_alt,nbuff,ebuff,ubuff,tvals] = buffer_init_influxDB.data_fromInfluxDB(unixotcorr,unixot,ndata,ip,pt,uname,pword,database)
 else:
-	logger.info('Building buffers from archive data file %s', chanfile)
+	logger.info(f"Building buffers from archive data file {chanfile}")
 	[staname,gpst,sta_lat,sta_lon,sta_alt,nbuff,ebuff,ubuff,tvals] = buffer_init_influxDB_archive.data_fromInfluxDB(unixotcorr,unixot,ndata,chanfile,ip,pt,uname,pword,database)
 tbuff = numpy.c_[0:ndata*datarate:datarate] #time buffer
 
@@ -178,7 +183,7 @@ while runtime < datarate*ndata+1:
 		sigpgd = "{0:.4f}".format(float(SIG_PGD))
 		lenpgd = str(LEN_PGD)
 		fpgd.write(str(runtime)+' '+mpgd+' '+sigpgd+' '+vrpgd+' '+lenpgd+'\n')
-		logger.info('Runtime %s: PGD M=%s sigma=%s VR=%s stations=%s', runtime, mpgd, sigpgd, vrpgd, lenpgd)
+		logger.info(f"Runtime {runtime}: PGD M={mpgd} sigma={sigpgd} VR={vrpgd} stations={lenpgd}")
 
 	if ((SIG_PGD <= 0.5) or (runcmtff == 1)):
 		runcmtff = 1 #if the PGD uncertainty has ever been under 0.5, run the full stack, otherwise skip
@@ -218,7 +223,7 @@ while runtime < datarate*ndata+1:
 
 		lencmt = str(LEN_CMT)
 		fcmt.write(str(runtime)+' '+str(dep_vr_cmt)+' '+vrcmt+' '+mcmt+' '+s1+' '+s2+' '+s3+' '+s4+' '+s5+' '+str1+' '+str2+' '+dip1+' '+dip2+' '+rak1+' '+rak2+' '+lencmt+'\n')
-		logger.info('Runtime %s: CMT depth index=%s VR=%s M=%s stations=%s', runtime, dep_vr_cmt, vrcmt, mcmt, lencmt)
+		logger.info(f"Runtime {runtime}: CMT depth index={dep_vr_cmt} VR={vrcmt} M={mcmt} stations={lencmt}")
 
 		if (LEN_CMT > 3):
 			str1 = STR1[dep_vr_cmt]
@@ -285,7 +290,7 @@ while runtime < datarate*ndata+1:
 				str11 = "{0:.2f}".format(float(STR1[dep_vr_cmt,0]))
 				str22 = "{0:.2f}".format(float(STR2[dep_vr_cmt,0]))
 				ffo.write(str(runtime)+' '+mff+' '+maxlon+' '+maxlat+' '+maxdep+' '+maxslip+' '+rakews+' '+vrff1+' '+vrff2+' '+str11+' '+str22+'\n')
-				logger.info('Runtime %s: FF magnitude=%s max slip=%s km at (%s,%s,%s)', runtime, mff, maxslip, maxlon, maxlat, maxdep)
+				logger.info(f"Runtime {runtime}: FF magnitude={mff} max slip={maxslip} km at ({maxlon},{maxlat},{maxdep})")
 
 
 				l1 = len(SSLIP)
@@ -324,6 +329,7 @@ while runtime < datarate*ndata+1:
 
 
 if (runcmtff == 0):
+	print('PGD magnitude uncertainty too high for entire run, most likely noise source. No CMT or FF run')
 	logger.warning('PGD magnitude uncertainty too high for entire run, most likely noise source. No CMT or FF run')
 fpgd.close()
 fpgdv.close()
